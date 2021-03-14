@@ -110,7 +110,7 @@ class Device():
 
         if (value == None):
             # There is no way to properly handle heartbeat messages as nValue and sValue are mandatory for device update
-            Domoticz.Debug('Received heartbeat message from device "' + device.Name + '"')
+            domoticz.debug('Received heartbeat message from device "' + device.Name + '"')
             return None
 
         device_values = dict({
