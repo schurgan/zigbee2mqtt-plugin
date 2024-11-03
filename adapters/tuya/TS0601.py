@@ -15,11 +15,7 @@ class TS0601(AdapterWithBattery):
         mode_switch = SelectorSwitch(devices, 'mode', 'system_mode', ' (Mode)')
         mode_switch.add_level('Off', 'off')
         mode_switch.add_level('Auto', 'auto')
-        mode_switch.add_level('Manual', 'manual')
-        mode_switch.add_level('Comfort', 'comfort')
-        mode_switch.add_level('Eco', 'eco')
-        mode_switch.add_level('Boost', 'boost')
-        mode_switch.add_level('Complex', 'complex')
+        mode_switch.add_level('Heat', 'heat')
         mode_switch.set_selector_style(SelectorSwitch.SELECTOR_TYPE_MENU)
         mode_switch.set_icon(15)
 
@@ -73,8 +69,9 @@ class TS0601(AdapterWithBattery):
 
         if alias == 'mode' or alias == 'preset':
             switch = self.get_device_by_alias(alias)
+            key = switch.value_key
             level_index = int(level / 10)
-            msg = json.dumps({ alias: switch.level_values[level_index] })
+            msg = json.dumps({ key: switch.level_values[level_index] })
 
             return {
                 'topic': topic,
