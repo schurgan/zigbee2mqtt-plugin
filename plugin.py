@@ -179,7 +179,7 @@ class BasePlugin:
             return
 
         if (topic == 'bridge/state'):
-            Domoticz.Log('Zigbee2mqtt bridge is ' + message)
+            Domoticz.Log('Zigbee2mqtt bridge is ' + str(message))
 
             if message == 'online':
                 # self.publishToMqtt('bridge/config/devices', '')
