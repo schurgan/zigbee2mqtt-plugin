@@ -1,5 +1,6 @@
 import json
 import domoticz
+import time
 from adapters.base_adapter import Adapter
 from devices.sensor.contact import ContactSensor
 from devices.sensor.current import CurrentSensor
@@ -32,6 +33,8 @@ class UniversalAdapter(Adapter):
         self.devices = []
         self.zigbee_device = zigbee_device
         self.name = zigbee_device['friendly_name']
+        self._unsupported_once = set()
+        self._start_ts = time.time()
 
         if 'exposes' not in zigbee_device['definition']:
             domoticz.error(self.name + ': device exposes not found')
@@ -40,6 +43,23 @@ class UniversalAdapter(Adapter):
         self._add_features(zigbee_device['definition']['exposes'])
         self.register()
 
+    def _log_unsupported_once(self, kind: str, key: str, grace_seconds: int = 120):
+        """
+        Logs unsupported features/items only once per adapter instance.
+        During the first <grace_seconds> after adapter init it logs as debug to avoid log spam on startup.
+        """
+        sig = (kind, key)
+        if sig in self._unsupported_once:
+            return
+        self._unsupported_once.add(sig)
+
+        msg = f'{self.name}: ignore unsupported {kind} "{key}"'
+
+        if (time.time() - self._start_ts) < grace_seconds:
+            domoticz.debug(msg)
+        else:
+            domoticz.log(msg)
+            
     def _add_features(self, features):
         for item in features:
             self._add_feature(item)
@@ -60,7 +80,7 @@ class UniversalAdapter(Adapter):
         elif item['type'] == 'climate':
             self._add_features(item['features'])
         else:
-            domoticz.error(self.name + ': can not process feature type "' + item['type'] + '"')
+            self._log_unsupported_once('feature type', item.get('type', '<?>'))
             domoticz.debug(json.dumps(item))
 
     def _add_light_feature(self, feature):
@@ -179,7 +199,7 @@ class UniversalAdapter(Adapter):
             self._add_device(alias, feature, OnOffSwitch)
             return
 
-        domoticz.error(self.name + ': can not process binary item "' + feature['name'] + '"')
+        self._log_unsupported_once('binary item', feature.get('name', '<?>'))
         domoticz.debug(json.dumps(feature))
 
     def add_numeric_device(self, feature):
@@ -240,7 +260,7 @@ class UniversalAdapter(Adapter):
             self._add_device(alias, feature, LevelSwitch)
             return
 
-        domoticz.error(self.name + ': can not process numeric item "' + feature['name'] + '"')
+        self._log_unsupported_once('numeric item', feature.get('name', '<?>'))
         domoticz.debug(json.dumps(feature))
 
     def handle_command(self, alias, domoticz_device, command, level, color):
