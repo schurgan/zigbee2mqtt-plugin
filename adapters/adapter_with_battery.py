@@ -27,7 +27,7 @@ class AdapterWithBattery(Adapter):
     def convert_message(self, message):
         message = super().convert_message(message)
 
-        if 'voltage' in message.raw:
+        if isinstance(message.raw.get('voltage'), (int, float)):
             message.raw['battery_voltage'] = message.raw['voltage'] / 1000
 
         return message

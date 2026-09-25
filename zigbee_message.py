@@ -3,13 +3,15 @@ class ZigbeeMessage:
         self.raw = message
 
     def get_signal_level(self):
-        if ('linkquality' in self.raw):
-            return int(int(self.raw['linkquality']) * 11 / 255)
-        else:
+        value = self.raw.get('linkquality')
+        try:
+            return int(int(value) * 11 / 255)
+        except (TypeError, ValueError):
             return None
 
     def get_battery_level(self):
-        if ('battery' in self.raw):
-            return int(float(self.raw['battery']))
-        else:
+        value = self.raw.get('battery')
+        try:
+            return int(float(value))
+        except (TypeError, ValueError):
             return None
